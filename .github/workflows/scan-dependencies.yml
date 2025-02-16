@@ -1,0 +1,72 @@
+name: Scan dependencies
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+env:
+  MEND_URL: ${{ secrets.MEND_URL }}
+  MEND_ORGANIZATION: ${{ secrets.MEND_ORGANIZATION }}
+  MEND_ORGANIZATION_KEY: ${{ secrets.MEND_ORGANIZATION_KEY }}
+  MEND_USER_KEY: ${{ secrets.MEND_USER_KEY }}
+  MEND_EMAIL: ${{ secrets.MEND_EMAIL }}
+
+permissions:
+  actions: write
+  contents: read
+  security-events: write
+
+jobs:
+  test-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Grant execute permission to Gradle wrapper
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build --no-daemon
+
+      - name: Set up Mend CLI
+        uses: carlspring/mend-actions/setup@feat/scan-dependencies
+
+      - name: Login into Mend.io
+        uses: carlspring/mend-actions/login@feat/scan-dependencies
+
+      - name: Debug
+        if: always()
+        run: |
+          ls -al
+          tree
+
+      - name: Perform scan
+        uses: carlspring/mend-actions/scan-dependencies@feat/scan-dependencies
+        with:
+          scope: "*//CTNR - FORME/mend-actions-gradle-example"
+
+      - name: Debug
+        if: always()
+        run: |
+          ls -al
+          tree
+#          cat dependencies.json
+
+      - name: Upload SARIF report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          # Path to SARIF file relative to the root of the repository
+          sarif_file: results.sarif
+
