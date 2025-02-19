@@ -14,6 +14,7 @@ env:
   MEND_ORGANIZATION_KEY: ${{ secrets.MEND_ORGANIZATION_KEY }}
   MEND_USER_KEY: ${{ secrets.MEND_USER_KEY }}
   MEND_EMAIL: ${{ secrets.MEND_EMAIL }}
+  MEND_LOG_LEVEL: "DEBUG"
 
 permissions:
   actions: write
@@ -47,7 +48,7 @@ jobs:
       - name: Login into Mend.io
         uses: carlspring/mend-actions/login@feat/scan-dependencies
 
-      - name: Perform scan
+      - name: Scan dependencies
         uses: carlspring/mend-actions/scan-dependencies@feat/scan-dependencies
         with:
           scope: "*//CTNR - FORME/mend-actions-gradle-example"
